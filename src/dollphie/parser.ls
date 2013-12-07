@@ -114,7 +114,7 @@ export section = p.sequence [
   hs
   p.many  (p.string '-')
   eol
-] |> p.map ([a, _, bs, _, _]) -> [\section a.length, bs.join '']
+] |> p.map ([a, _, bs, _, _]) -> [\section a.length, bs.join '' .trim!]
 
 export declaration = p.sequence [
   p.many1 (p.string '#')
@@ -135,7 +135,7 @@ export id = p.many1 id-chars |> p.map (as) -> [\id as.join '']
 
 export qualified-id = do
                       p.separated-by (p.string '.'), -> id it
-                      |> p.map (as) -> [\qualified-id ...as]
+                      |> p.map (as) -> [\qualified-id as]
 
 export hard-line = do
                    p.and-then do
@@ -264,7 +264,7 @@ export email-url = p.sequence [
 export image-link = p.sequence [
   p.string '!'
   -> regular-link it
-] |> p.map ([_, as]) -> [\image-link as.slice 1]
+] |> p.map ([_, as]) -> [\image-link ...(as.slice 1)]
 
 export regular-link = p.sequence [
   p.string '[['
@@ -287,8 +287,9 @@ export foot-note-reference = p.sequence [
   p.string '['
   -> number it
   p.string ']:'
+  hs
   -> soft-line it
-] |> p.map ([_, a, _, b]) -> [\foot-note-ref a, b]
+] |> p.map ([_, a, _, _, b]) -> [\foot-note-text a, b]
 
 export number = p.many1 p.digit |> p.map (a) -> Number (a.join '')
 

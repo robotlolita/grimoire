@@ -23,6 +23,7 @@
   "dependencies": {
     "parsing.combinators": "~0.2.0",
     "monads.either": "~0.1.0",
-    "data.array": "~0.1.0"
+    "data.array": "~0.1.0",
+    "slug": "~0.4.0"
   }
 }
