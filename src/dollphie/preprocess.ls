@@ -33,7 +33,7 @@ matches-re = (s, re) --> (new RegExp re).test s
 
 starts-with = (s, a) --> s `matches-re` "^\s*#{sanitise-re a}"
 
-nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}", \g), ''
+nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}\s?", \g), ''
 
 split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
