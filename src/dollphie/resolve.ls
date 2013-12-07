@@ -21,8 +21,6 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-slugify = require 'slug'
-
 export resolve-node = (a) -> switch (tag = a?0)
   | \section         => Section.from-node a
   | \declaration     => Declaration.from-node a
