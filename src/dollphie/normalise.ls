@@ -55,7 +55,7 @@ export text-or-resolve = (a) ->
   catch e
     a
 
-export resolve-ast = (ast) -> ast.map resolve-node
+export normalise-ast = (ast) -> ast.map resolve-node
 
 padded = (n, s) --> 
   lines = s.split /\r?\n/

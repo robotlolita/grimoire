@@ -23,9 +23,8 @@
 
 last = require 'data.array/common/last'
 but-last = require 'data.array/common/but-last'
-{ parse } = require './parser'
 
-plain = (a) -> [\text parse a]
+plain = (a) -> [\text a]
 
 sanitise-re = (a) -> a.replace /(\W)/g, '\\$1'
 
@@ -38,9 +37,21 @@ nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}\s?", \g),
 split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
    .map (l, n) ->
-     | /^\s*$/.test l    => [\blank, n]
-     | l `starts-with` c => [\text parse (nuke-comments c, l), n]
-     | otherwise         => [\code lexer, l, n]
+     | /^\s*$/.test l    => [\blank line: n]
+     | l `starts-with` c => [\text text: nuke-comments c, l; line: n]
+     | otherwise         => [\code lexer: lexer, text: l, line: n]
+
+fold-lines = (lines) ->
+  (`lines.reduce` []) (a, as) ->
+    | (last as).is-nothing         => [a]
+    | match-type a, (last as).get! => (but-last as) ++ (join (last as).get!, a)
+    | otherwise                    => as ++ [a]
+
+match-type = (a, b) -> a.0 is b.0
+
+join = (a, b) -> [...a, b.1]
+
+process-file = (lexer, c) --> (a) -> fold-lines (split-comments lexer, c)(a)
 
 export languages = do
                    * Dollphie:
@@ -49,77 +60,77 @@ export languages = do
               
                    * C:
                        extensions: <[ .c .h ]>
-                       processor: split-comments \c '//'
+                       processor: process-file \c '//'
               
                    * 'C#':
                        extensions: <[ .cs ]>
-                       processor: split-comments \csharp '//'
+                       processor: process-file \csharp '//'
               
                    * 'C++':
                        extensions: <[ .cpp .hpp .c++ .h++ .cc .hh .cxx .hxx ]>
-                       processor: split-comments \cpp '//'
+                       processor: process-file \cpp '//'
               
                    * Clojure:
                        extension: <[ .clj .cljs ]>
-                       processor: split-comments \clojure ';;'
+                       processor: process-file \clojure ';;'
                        
                    * CoffeeScript:
                        extensions: <[ .coffee Cakefile ]>
-                       processor: split-comments \coffee-script '#'
+                       processor: process-file \coffee-script '#'
               
                    * Go:
                        extensions: <[ .go ]>
-                       processor: split-comments \go '//'
+                       processor: process-file \go '//'
               
                    * Haskell:
                        extensions: <[ .hs ]>
-                       processor: split-comments \haskell '--'
+                       processor: process-file \haskell '--'
               
                    * Java:
                        extensions: <[ .java ]>
-                       processor: split-comments \java '//'
+                       processor: process-file \java '//'
               
                    * JavaScript:
                        extensions: <[ .js ]>
-                       processor: split-comments \javascript '//'
+                       processor: process-file \javascript '//'
               
                    * LiveScript:
                        extensions: <[ .ls Slakefile ]>
-                       processor: split-comments \livescript '#'
+                       processor: process-file \livescript '#'
               
                    * Lua:
                        extensions: <[ .lua ]>
-                       processor: split-comments \lua '--'
+                       processor: process-file \lua '--'
               
                    * Make:
                        extensions: <[ Makefile ]>
-                       processor: split-comments \make '#'
+                       processor: process-file \make '#'
               
                    * 'Objective-C':
                        extensions: <[ .m .nm ]>
-                       processor: split-comments \objc '//'
+                       processor: process-file \objc '//'
               
                    * Perl:
                        extensions: <[ .pl .pm ]>
-                       processor: split-comments \perl '#'
+                       processor: process-file \perl '#'
               
                    * PHP:
                        extensions: <[ .php .phpd .fbp ]>
-                       processor: split-comments \php '//'
+                       processor: process-file \php '//'
               
                    * Puppet:
                        extensions: <[ .pp ]>
-                       processor: split-comments \puppet '#'
+                       processor: process-file \puppet '#'
               
                    * Python:
                        extensions: <[ .py ]>
-                       processor: split-comments \python '#'
+                       processor: process-file \python '#'
               
                    * Ruby:
                        extensions: <[ .rb .ru .gemspec ]>
-                       processor: split-comments \ruby '#'
+                       processor: process-file \ruby '#'
               
                    * Shell:
                        extensions: <[ .sh ]>
-                       processor: split-comments \sh '#'
+                       processor: process-file \sh '#'
 
