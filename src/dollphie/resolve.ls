@@ -81,8 +81,6 @@ export class Token
   @from-node = -> throw new Error "Don't know how to make a #{@type} out of a node."
   to-string: -> @repr 0
   repr: (n) -> "Token()"
-  can-assimilate: (a) -> false
-  assimilate: (a) -> throw new Error "A “#{@type}” token can't assimilate the token #a."
 
 export class Section extends Token
   (@title, @depth) ->
