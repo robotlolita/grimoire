@@ -23,8 +23,9 @@
 
 last = require 'data.array/common/last'
 but-last = require 'data.array/common/but-last'
+{ parse } = require './parser'
 
-plain = (a) -> [\text a]
+plain = (a) -> [\text parse a]
 
 sanitise-re = (a) -> a.replace /(\W)/g, '\\$1'
 
@@ -38,7 +39,7 @@ split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
    .map (l) ->
      | /^\s*$/.test l    => [\blank]
-     | l `starts-with` c => [\text nuke-comments c, l]
+     | l `starts-with` c => [\text parse (nuke-comments c, l)]
      | otherwise         => [\code lexer, l]
 
 export languages = do
