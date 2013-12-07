@@ -37,10 +37,10 @@ nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}", \g), ''
 
 split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
-   .map (l) ->
-     | /^\s*$/.test l    => [\blank]
-     | l `starts-with` c => [\text parse (nuke-comments c, l)]
-     | otherwise         => [\code lexer, l]
+   .map (l, n) ->
+     | /^\s*$/.test l    => [\blank, n]
+     | l `starts-with` c => [\text parse (nuke-comments c, l), n]
+     | otherwise         => [\code lexer, l, n]
 
 export languages = do
                    * Dollphie:
