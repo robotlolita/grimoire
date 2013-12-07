@@ -34,12 +34,12 @@ starts-with = (s, a) --> s `matches-re` "^\s*#{sanitise-re a}"
 
 nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}", \g), ''
 
-split-comments = (c) -> (a) ->
+split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
    .map (l) ->
      | /^\s*$/.test l    => [\blank]
      | l `starts-with` c => [\text nuke-comments c, l]
-     | otherwise         => [\code l]
+     | otherwise         => [\code lexer, l]
 
 export languages = do
                    * Dollphie:
@@ -48,96 +48,77 @@ export languages = do
               
                    * C:
                        extensions: <[ .c .h ]>
-                       pygments-lexer: \c
-                       processor: split-comments '//'
+                       processor: split-comments \c '//'
               
                    * 'C#':
                        extensions: <[ .cs ]>
-                       pygments-lexer: \csharp
-                       processor: split-comments '//'
+                       processor: split-comments \csharp '//'
               
                    * 'C++':
                        extensions: <[ .cpp .hpp .c++ .h++ .cc .hh .cxx .hxx ]>
-                       pygments-lexer: \cpp
-                       processor: split-comments '//'
+                       processor: split-comments \cpp '//'
               
                    * Clojure:
                        extension: <[ .clj .cljs ]>
-                       pygments-lexer: \clojure
-                       processor: split-comments ';;'
+                       processor: split-comments \clojure ';;'
                        
                    * CoffeeScript:
                        extensions: <[ .coffee Cakefile ]>
-                       pygments-lexer: \coffee-script
-                       processor: split-comments '#'
+                       processor: split-comments \coffee-script '#'
               
                    * Go:
                        extensions: <[ .go ]>
-                       pygments-lexer: \go
-                       processor: split-comments '//'
+                       processor: split-comments \go '//'
               
                    * Haskell:
                        extensions: <[ .hs ]>
-                       pygments-lexer: \haskell
-                       processor: split-comments '--'
+                       processor: split-comments \haskell '--'
               
                    * Java:
                        extensions: <[ .java ]>
-                       pygments-lexer: \java
-                       processor: split-comments '//'
+                       processor: split-comments \java '//'
               
                    * JavaScript:
                        extensions: <[ .js ]>
-                       pygments-lexer: \javascript
-                       processor: split-comments '//'
+                       processor: split-comments \javascript '//'
               
                    * LiveScript:
                        extensions: <[ .ls Slakefile ]>
-                       pygments-lexer: \livescript
-                       processor: split-comments '#'
+                       processor: split-comments \livescript '#'
               
                    * Lua:
                        extensions: <[ .lua ]>
-                       pygments-lexer: \lua
-                       processor: split-comments '--'
+                       processor: split-comments \lua '--'
               
                    * Make:
                        extensions: <[ Makefile ]>
-                       pygments-lexer: \make
-                       processor: split-comments '#'
+                       processor: split-comments \make '#'
               
                    * 'Objective-C':
                        extensions: <[ .m .nm ]>
-                       pygments-lexer: \objc
-                       processor: split-comments '//'
+                       processor: split-comments \objc '//'
               
                    * Perl:
                        extensions: <[ .pl .pm ]>
-                       pygments-lexer: \perl
-                       processor: split-comments '#'
+                       processor: split-comments \perl '#'
               
                    * PHP:
                        extensions: <[ .php .phpd .fbp ]>
-                       pygments-lexer: \php
-                       processor: split-comments '//'
+                       processor: split-comments \php '//'
               
                    * Puppet:
                        extensions: <[ .pp ]>
-                       pygments-lexer: \puppet
-                       processor: split-comments '#'
+                       processor: split-comments \puppet '#'
               
                    * Python:
                        extensions: <[ .py ]>
-                       pygments-lexer: \python
-                       processor: split-comments '#'
+                       processor: split-comments \python '#'
               
                    * Ruby:
                        extensions: <[ .rb .ru .gemspec ]>
-                       pygments-lexer: \ruby
-                       processor: split-comments '#'
+                       processor: split-comments \ruby '#'
               
                    * Shell:
                        extensions: <[ .sh ]>
-                       pygments-lexer: \sh
-                       processor: split-comments '#'
+                       processor: split-comments \sh '#'
 
