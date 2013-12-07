@@ -1,0 +1,27 @@
+{
+  "name": "grimoire",
+  "version": "0.0.0",
+  "description": "Literate documentation tool.",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/killdream/grimoire.git"
+  },
+  "keywords": [
+    "documentation",
+    "literate"
+  ],
+  "author": "Quildreen Motta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/killdream/grimoire/issues"
+  },
+  "homepage": "https://github.com/killdream/grimoire",
+  "dependencies": {
+    "parsing.combinators": "~0.1.0",
+    "monads.either": "~0.1.0"
+  }
+}
