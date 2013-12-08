@@ -173,7 +173,7 @@ export meta = p.sequence [
   -> id it
   p.string ':'
   p.optional [], hs
-  p.optional [\soft-line ''], -> soft-line it
+  p.optional [\soft-line []], -> soft-line it
   p.optional do
              * []
              * -> blocks-indented it
