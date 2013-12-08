@@ -43,13 +43,16 @@ split-comments = (lexer, c) --> (a) ->
 
 fold-lines = (lines) ->
   (`lines.reduce` []) (a, as) ->
-    | (last as).is-nothing         => [a]
+    | (last as).is-nothing         => if a.0 is \blank then [] else [a]
     | match-type a, (last as).get! => (but-last as) ++ (join (last as).get!, a)
+    | match-type a, [\blank]       => (but-last as) ++ add-blank (last as).get!, a
     | otherwise                    => as ++ [a]
 
 match-type = (a, b) -> a.0 is b.0
 
 join = (a, b) -> [...a, b.1]
+
+add-blank = (a, b) -> [...a, text: '', line: b.line]
 
 process-file = (lexer, c) --> (a) -> fold-lines (split-comments lexer, c)(a)
 
