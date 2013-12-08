@@ -25,6 +25,7 @@
     "monads.either": "~0.1.0",
     "data.array": "~0.1.0",
     "slug": "~0.4.0",
-    "polygamous": "~1.0.0"
+    "polygamous": "~1.0.0",
+    "monads.maybe": "~0.2.1"
   }
 }

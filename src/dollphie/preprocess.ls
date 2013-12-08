@@ -21,7 +21,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-last = require 'data.array/common/last'
+Maybe = require 'monads.maybe'
 but-last = require 'data.array/common/but-last'
 
 plain = (a) -> [\text a]
@@ -30,9 +30,9 @@ sanitise-re = (a) -> a.replace /(\W)/g, '\\$1'
 
 matches-re = (s, re) --> (new RegExp re).test s
 
-starts-with = (s, a) --> s `matches-re` "^\s*#{sanitise-re a}"
+starts-with = (s, a) --> s `matches-re` "^\\s*#{sanitise-re a}"
 
-nuke-comments = (c, s) --> s.replace (new RegExp "^\s*#{sanitise-re c}\s?", \g), ''
+nuke-comments = (c, s) --> s.replace (new RegExp "^\\s*#{sanitise-re c}\\s?"), ''
 
 split-comments = (lexer, c) --> (a) ->
   a.split /\r?\n/
@@ -42,11 +42,11 @@ split-comments = (lexer, c) --> (a) ->
      | otherwise         => [\code lexer: lexer, text: l, line: n]
 
 fold-lines = (lines) ->
-  (`lines.reduce` []) (a, as) ->
-    | (last as).is-nothing         => [a]
-    | match-type a, (last as).get! => (but-last as) ++ (join (last as).get!, a)
-    | match-type a, [\blank]       => (but-last as) ++ add-blank (last as).get!, a
-    | otherwise                    => as ++ [a]
+  (`lines~reduce` []) (as, a) ->
+    | as.length is 0         => [a]
+    | match-type a, as[*-1]  => (but-last as) ++ [(join as[*-1], a)]
+    | match-type a, [\blank] => (but-last as) ++ [add-blank as[*-1], a]
+    | otherwise              => as ++ [a]
 
 match-type = (a, b) -> a.0 is b.0
 
@@ -54,86 +54,112 @@ join = (a, b) -> [...a, b.1]
 
 add-blank = (a, b) -> [...a, text: '', line: b.line]
 
-process-file = (lexer, c) --> (a) -> fold-lines (split-comments lexer, c)(a)
+export process-file = (lexer, c) --> (a) -> fold-lines (split-comments lexer, c)(a)
+
+export serialise-to-dollphie = (ast) ->
+  (`ast~reduce` []) (as, a) ->
+    switch a.0
+    | \blank => as.push ''
+    | \text  => as.push ...(a.slice 1 .map (.text))
+    | \code  => as.push ":code: #{a.1.lexer} #{a.1.line}", (indented-code a.slice 1)
+    return as
+
+indented-code = (as) -> '  ' + as.map (.text) .join '\n  '
+
+export find-language-definitions-for = (name) ->
+  for lang, x of languages when match-language x, name => return Maybe.Just [lang, x]
+  return Maybe.Nothing!
+
+match-language = (spec, name) -->
+  spec.extensions.some (a) ->(new RegExp "#{sanitise-re a}$").test name
+
+export convert-to-dollphie = (filename, data) -->
+  [lang, spec] <- find-language-definitions-for filename .chain
+  text = serialise-to-dollphie (spec.processor data)
+  return Maybe.Just """
+                    :language: #lang
+                    :filename: #filename
+                    #{text.join '\n'}
+                    """
 
 export languages = do
-                   * Dollphie:
-                       extensions: <[ .doll ]>
-                       processor: plain
-              
-                   * C:
-                       extensions: <[ .c .h ]>
-                       processor: process-file \c '//'
-              
-                   * 'C#':
-                       extensions: <[ .cs ]>
-                       processor: process-file \csharp '//'
-              
-                   * 'C++':
-                       extensions: <[ .cpp .hpp .c++ .h++ .cc .hh .cxx .hxx ]>
-                       processor: process-file \cpp '//'
-              
-                   * Clojure:
-                       extension: <[ .clj .cljs ]>
-                       processor: process-file \clojure ';;'
-                       
-                   * CoffeeScript:
-                       extensions: <[ .coffee Cakefile ]>
-                       processor: process-file \coffee-script '#'
-              
-                   * Go:
-                       extensions: <[ .go ]>
-                       processor: process-file \go '//'
-              
-                   * Haskell:
-                       extensions: <[ .hs ]>
-                       processor: process-file \haskell '--'
-              
-                   * Java:
-                       extensions: <[ .java ]>
-                       processor: process-file \java '//'
-              
-                   * JavaScript:
-                       extensions: <[ .js ]>
-                       processor: process-file \javascript '//'
-              
-                   * LiveScript:
-                       extensions: <[ .ls Slakefile ]>
-                       processor: process-file \livescript '#'
-              
-                   * Lua:
-                       extensions: <[ .lua ]>
-                       processor: process-file \lua '--'
-              
-                   * Make:
-                       extensions: <[ Makefile ]>
-                       processor: process-file \make '#'
-              
-                   * 'Objective-C':
-                       extensions: <[ .m .nm ]>
-                       processor: process-file \objc '//'
-              
-                   * Perl:
-                       extensions: <[ .pl .pm ]>
-                       processor: process-file \perl '#'
-              
-                   * PHP:
-                       extensions: <[ .php .phpd .fbp ]>
-                       processor: process-file \php '//'
-              
-                   * Puppet:
-                       extensions: <[ .pp ]>
-                       processor: process-file \puppet '#'
-              
-                   * Python:
-                       extensions: <[ .py ]>
-                       processor: process-file \python '#'
-              
-                   * Ruby:
-                       extensions: <[ .rb .ru .gemspec ]>
-                       processor: process-file \ruby '#'
-              
-                   * Shell:
-                       extensions: <[ .sh ]>
-                       processor: process-file \sh '#'
+                   Dollphie:
+                     extensions: <[ .doll ]>
+                     processor: plain
+                   
+                   C:
+                     extensions: <[ .c .h ]>
+                     processor: process-file \c '//'
+                   
+                   'C#':
+                     extensions: <[ .cs ]>
+                     processor: process-file \csharp '//'
+                   
+                   'C++':
+                     extensions: <[ .cpp .hpp .c++ .h++ .cc .hh .cxx .hxx ]>
+                     processor: process-file \cpp '//'
+                   
+                   Clojure:
+                     extensions: <[ .clj .cljs ]>
+                     processor: process-file \clojure ';;'
+                     
+                   CoffeeScript:
+                     extensions: <[ .coffee Cakefile ]>
+                     processor: process-file \coffee-script '#'
+                   
+                   Go:
+                     extensions: <[ .go ]>
+                     processor: process-file \go '//'
+                   
+                   Haskell:
+                     extensions: <[ .hs ]>
+                     processor: process-file \haskell '--'
+                   
+                   Java:
+                     extensions: <[ .java ]>
+                     processor: process-file \java '//'
+                   
+                   JavaScript:
+                     extensions: <[ .js ]>
+                     processor: process-file \javascript '//'
+                   
+                   LiveScript:
+                     extensions: <[ .ls Slakefile ]>
+                     processor: process-file \livescript '#'
+                   
+                   Lua:
+                     extensions: <[ .lua ]>
+                     processor: process-file \lua '--'
+                   
+                   Make:
+                     extensions: <[ Makefile ]>
+                     processor: process-file \make '#'
+                   
+                   'Objective-C':
+                     extensions: <[ .m .nm ]>
+                     processor: process-file \objc '//'
+                   
+                   Perl:
+                     extensions: <[ .pl .pm ]>
+                     processor: process-file \perl '#'
+                   
+                   PHP:
+                     extensions: <[ .php .phpd .fbp ]>
+                     processor: process-file \php '//'
+                   
+                   Puppet:
+                     extensions: <[ .pp ]>
+                     processor: process-file \puppet '#'
+                   
+                   Python:
+                     extensions: <[ .py ]>
+                     processor: process-file \python '#'
+                   
+                   Ruby:
+                     extensions: <[ .rb .ru .gemspec ]>
+                     processor: process-file \ruby '#'
+                   
+                   Shell:
+                     extensions: <[ .sh ]>
+                     processor: process-file \sh '#'
 
