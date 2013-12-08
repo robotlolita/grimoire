@@ -23,6 +23,7 @@
 
 Maybe = require 'monads.maybe'
 but-last = require 'data.array/common/but-last'
+{ parse } = require './parser'
 
 plain = (a) -> [\text a]
 
@@ -59,12 +60,13 @@ export process-file = (lexer, c) --> (a) -> fold-lines (split-comments lexer, c)
 export serialise-to-dollphie = (ast) ->
   (`ast~reduce` []) (as, a) ->
     switch a.0
-    | \blank => as.push ''
-    | \text  => as.push ...(a.slice 1 .map (.text))
-    | \code  => as.push ":code: #{a.1.lexer} #{a.1.line}", (indented-code a.slice 1)
+    | \blank => as.push [\blank-line]
+    | \text  => as.push ...(parse (a.slice 1 .map (.text) .join '\n')).get!.1
+    | \code  => as.push [\meta
+                          [\id \code]
+                          [\soft-line ["#{a.1.lexer} #{a.1.line}"]]
+                          [[\literal (a.slice 1 .map (.text) .join '\n')]]]
     return as
-
-indented-code = (as) -> '  ' + as.map (.text) .join '\n  '
 
 export find-language-definitions-for = (name) ->
   for lang, x of languages when match-language x, name => return Maybe.Just [lang, x]
@@ -75,12 +77,7 @@ match-language = (spec, name) -->
 
 export convert-to-dollphie = (filename, data) -->
   [lang, spec] <- find-language-definitions-for filename .chain
-  text = serialise-to-dollphie (spec.processor data)
-  return Maybe.Just """
-                    :language: #lang
-                    :filename: #filename
-                    #{text.join '\n'}
-                    """
+  Maybe.Just serialise-to-dollphie (spec.processor data)
 
 export languages = do
                    Dollphie:
