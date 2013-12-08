@@ -95,8 +95,8 @@ export blocks = p.choice [
 ]
 
 export heading = p.choice [
-  -> section it
   -> declaration it
+  -> section it
   -> meta it
 ]
 
@@ -108,26 +108,26 @@ export block = p.choice [
 ]
 
 export section = p.sequence [
-  p.many1 (p.string '-')
+  p.many1 (p.string '#')
   hs
-  p.many  (p.none-of ['-'])
+  p.many  (p.none-of ['#'])
   hs
-  p.many  (p.string '-')
+  p.many  (p.string '#')
   eol
 ] |> p.map ([a, _, bs, _, _]) -> [\section a.length, bs.join '' .trim!]
 
 export declaration = p.sequence [
   p.many1 (p.string '#')
   hs
-  -> type it
+  -> id it
+  hs
+  p.string ':'
   hs
   -> qualified-id it
   hs
   p.many (p.string '#')
   eol
-] |> p.map ([a, _, b, _, c, _, _]) -> [\declaration a.length, b, c]
-
-export type = p.choice (<[ module function method class field type ]> .map p.caseless-string)
+] |> p.map ([a, _, b, _, _, _, c, _, _]) -> [\declaration a.length, b, c]
 
 export id-chars = p.none-of str-to-array ':. \t\f\n\r'
 
