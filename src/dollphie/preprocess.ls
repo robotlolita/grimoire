@@ -43,7 +43,7 @@ split-comments = (lexer, c) --> (a) ->
 
 fold-lines = (lines) ->
   (`lines.reduce` []) (a, as) ->
-    | (last as).is-nothing         => if a.0 is \blank then [] else [a]
+    | (last as).is-nothing         => [a]
     | match-type a, (last as).get! => (but-last as) ++ (join (last as).get!, a)
     | match-type a, [\blank]       => (but-last as) ++ add-blank (last as).get!, a
     | otherwise                    => as ++ [a]
